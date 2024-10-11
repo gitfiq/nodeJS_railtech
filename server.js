@@ -10,6 +10,11 @@ let previousList = []; // List of previously detected unique IDs
 
 // Function to save detected unique IDs to Firestore
 async function saveToFirestore(line, intersection, zone, id, onTrack, timestamp) {
+  if (!id) {
+    console.error('Invalid ID. Skipping Firestore save operation.');
+    return; // Skip saving if ID is not valid
+  }
+
   try {
     const docRef = db.collection(line)
       .doc(intersection)
@@ -57,12 +62,16 @@ app.post('/data', async (req, res) => {
 
     // Save newly detected IDs
     for (const id of newlyDetected) {
-      await saveToFirestore(line, intersection, zone, id, true, detectedTime);
+      if (id) { // Check if the ID is valid
+        await saveToFirestore(line, intersection, zone, id, true, detectedTime);
+      }
     }
 
     // Update no longer detected IDs
     for (const id of noLongerDetected) {
-      await saveToFirestore(line, intersection, zone, id, false, detectedTime);
+      if (id) { // Check if the ID is valid
+        await saveToFirestore(line, intersection, zone, id, false, detectedTime);
+      }
     }
 
     // Update previous list to the current list for the next comparison
